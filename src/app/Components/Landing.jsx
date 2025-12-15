@@ -1,13 +1,13 @@
 import Image from "next/image";
 import banner from "../../assets/portada.svg";
 
-function Landing() {
+export default function Landing() {
   return (
     <div id="main">
       <section id="one" className="relative w-full">
-        {/* Logo local */}
+        {/* Logo local (public/logo.png o public/logo.webp) */}
         <Image
-          src="/logo.png"
+          src="/logo.png"   // o "/logo.webp" si tu logo es webp real
           alt="Logo"
           width={160}
           height={56}
@@ -28,5 +28,3 @@ function Landing() {
     </div>
   );
 }
-
-export default Landing;
