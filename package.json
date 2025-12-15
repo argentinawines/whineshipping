@@ -1,0 +1,60 @@
+{
+  "name": "wineshipping",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Argentine wine shipping",
+  "keywords": [
+    "Argentine wine",
+    "Malbec",
+    "Mendoza wine",
+    "red wine",
+    "premium wine",
+    "South American wine",
+    "wine export",
+    "organic wine",
+    "Andes wine",
+    "old vine Malbec",
+    "wine for grilling",
+    "award-winning wine",
+    "boutique winery",
+    "wine delivery worldwide",
+    "Argentinian Malbec"
+  ],
+
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start", 
+    "lint": "next lint"
+  },
+  
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.7",
+    "@mui/material": "^6.4.7",
+    "@paypal/react-paypal-js": "^8.8.3",
+    "axios": "^1.8.3",
+    "clsx": "^2.1.1",
+    "next": "15.2.1",
+    "next-cloudinary": "^6.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-lazy-load-image-component": "^1.6.3",
+    "react-notifications": "^1.7.4",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.3.0",
+    "react-select": "^5.10.1",
+    "react-toastify": "^11.0.5",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "sass": "^1.86.3",
+    "sonner": "^2.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4"
+  }
+}
