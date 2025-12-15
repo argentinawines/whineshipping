@@ -1,45 +1,52 @@
 import React, { useState } from "react";
-import { useContext } from "react";
 import { useCart } from "./hooks/CartHook.jsx";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import Prueba from "./Prueba";
 import { useDispatch, useSelector } from "react-redux";
 import { openModal } from "@/redux/action.js";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Link from "next/link.js";
+import Image from "next/image";
 
 function Menu() {
   const [showCartModal, setShowCartModal] = useState(false);
   const { addToCart } = useCart();
   const dispatch = useDispatch();
-   const router = useRouter();
-const cart = useSelector(state => state.cartProducts);
-const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
+  const router = useRouter();
+
+  const cart = useSelector((state) => state.cartProducts);
+  const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
 
   const handleAddToCart = (product) => {
-    router.push('/create')
-  }
-   
-  return (
-    // <nav className="bg-gray-500 dark:bg-gray-300 absolute w-full z-20 start-0 border-b border-gray-200 dark:border-gray-600">
-    <nav className="bg-gray-500 border-b border-gray-200 absolute w-full z-20 start-0">
+    router.push("/create");
+  };
 
+  return (
+    <nav className="bg-gray-500 border-b border-gray-200 absolute w-full z-20 start-0">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-            <Image
-              src="/logo.png"   // o "/logo.webp"
-              alt="Logo"
-              width={120}
-              height={40}
-              priority
-              className="h-8 w-auto"
-            />
-          </Link>
+        {/* Logo */}
+        <Link
+          href="/"
+          className="flex items-center space-x-3 rtl:space-x-reverse"
+        >
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={120}
+            height={40}
+            priority
+            className="h-8 w-auto"
+          />
+          <span className="self-center font-semibold whitespace-nowrap text-white"></span>
+        </Link>
+
+        {/* Right / Cart */}
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <span
             type="button"
-            className="text-white focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-4 py-2 text-center "
+            className="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-4 py-2 text-center"
           ></span>
+
           <button
             data-collapse-toggle="navbar-sticky"
             type="button"
@@ -57,17 +64,17 @@ const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
             ></svg>
           </button>
 
-          <div className="relative" >
-          <button onClick={() => dispatch(openModal())}>
-          <div className="bg-red-500 absolute  -bottom-2 text-[12px] w-[18px] h-[18px] text-white rounded-full flex justify-center items-center">
-         {itemAmount}
-         </div>
-         <ShoppingCartIcon  sx={{ fontSize: 30 }}  />
-            {/* Mostrar Modal */}
-           
-          </button>
+          <div className="relative">
+            <button onClick={() => dispatch(openModal())}>
+              <div className="bg-red-500 absolute -bottom-2 text-[12px] w-[18px] h-[18px] text-white rounded-full flex justify-center items-center">
+                {itemAmount}
+              </div>
+              <ShoppingCartIcon sx={{ fontSize: 30 }} />
+            </button>
           </div>
         </div>
+
+        {/* Links */}
         <div
           className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1"
           id="navbar-sticky"
@@ -82,22 +89,7 @@ const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
                 Home
               </Link>
             </li>
-            {/* <li>
-              <a
-                href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                Bodegas
-              </a>
-            </li> */}
-            {/* <li>
-              <a
-                href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                Espumosos
-              </a>
-            </li> */}
+
             <li>
               <Link
                 href="/offers"
@@ -106,35 +98,12 @@ const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
                 Offers
               </Link>
             </li>
-            {/* <li>
-              <a
-                href="#"
-                className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                Precios
-              </a>
-            </li> */}
-            
+
             <li>
               <span className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 justify-end">
-             
-              
-              {/* <button
-        onClick={() => handleAddToCart()}
-        className="fixed top-4 right-4 bg-black text-white p-2 rounded"
-      >
-        
-       Create
-       
-      </button> */}
-      
-      {showCartModal && (
-         
-        <Prueba closeModal={() => setShowCartModal(false)} />
-       
-      )}
-              
-                {/* <Prueba /> */}
+                {showCartModal && (
+                  <Prueba closeModal={() => setShowCartModal(false)} />
+                )}
               </span>
             </li>
           </ul>
