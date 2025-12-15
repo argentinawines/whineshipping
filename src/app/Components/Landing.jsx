@@ -1,16 +1,18 @@
-import React from "react";
-import banner from "../../assets/portada.svg";
 import Image from "next/image";
+import banner from "../../assets/portada.svg";
 
-function Landing() {
+export default function Landing() {
   return (
     <div id="main">
       <section id="one" className="relative w-full">
         {/* Logo local */}
-        <img
+        <Image
           src="/logo.png"
           alt="Logo"
-          className="absolute top-2 left-2 h-9 sm:h-10 md:h-14 z-20 bg-black bg-opacity-50 p-1"
+          width={160}
+          height={56}
+          priority
+          className="absolute top-2 left-2 z-20 bg-black/50 p-1 h-9 sm:h-10 md:h-14 w-auto"
         />
 
         {/* Banner */}
@@ -26,5 +28,3 @@ function Landing() {
     </div>
   );
 }
-
-export default Landing;
