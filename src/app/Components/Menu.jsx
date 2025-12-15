@@ -25,15 +25,16 @@ const itemAmount = cart.reduce((total, item) => total + item.quantity, 0);
     <nav className="bg-gray-500 border-b border-gray-200 absolute w-full z-20 start-0">
 
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <Link
-         href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <img
-            src="http://vinos.sistemas4b.com/wp-content/uploads/2020/04/fhdhd-03.webp"
-            className="h-8"
-            alt="Flowbite Logo"
-          />
-          <span className="self-center font-semibold whitespace-nowrap dark:text-white"></span>
-        </Link>
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <Image
+              src="/logo.png"   // o "/logo.webp"
+              alt="Logo"
+              width={120}
+              height={40}
+              priority
+              className="h-8 w-auto"
+            />
+          </Link>
         <div className="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <span
             type="button"
