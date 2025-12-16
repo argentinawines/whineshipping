@@ -3,7 +3,12 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "next/navigation";
 
-import { getProductDetail, clearProductDetail } from "../../../redux/action.js";
+import {
+  getProductDetail,
+  clearProductDetail,
+  addToCart,
+  openModal,
+} from "../../../redux/action.js";
 
 import ModalShow from "@/app/Components/ModalShow.jsx";
 import Menu from "@/app/Components/Menu.jsx";
@@ -20,11 +25,15 @@ export default function Page() {
 
   useEffect(() => {
     if (!id) return;
-
-    // Evita ver el producto anterior mientras carga el nuevo
     dispatch(clearProductDetail());
     dispatch(getProductDetail(id));
   }, [dispatch, id]);
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    dispatch(addToCart(product)); // ✅ agrega al carrito (y suma cantidad si ya existe)
+    dispatch(openModal()); // ✅ abre el modal del carrito (opcional, pero queda bien)
+  };
 
   return (
     <>
@@ -72,7 +81,10 @@ export default function Page() {
               {product?.description || ""}
             </p>
 
-            <button className="flex justify-center items-center bg-black hover:bg-blue-700 dark:bg-black text-white my-6 py-4 px-10 dark:hover:bg-black w-full">
+            <button
+              onClick={handleAddToCart}
+              className="flex justify-center items-center bg-black hover:bg-blue-700 dark:bg-black text-white my-6 py-4 px-10 dark:hover:bg-black w-full"
+            >
               <svg
                 className="w-6 h-6 text-white pr-1"
                 aria-hidden="true"
