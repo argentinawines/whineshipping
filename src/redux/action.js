@@ -1,5 +1,8 @@
 import axios from "axios";
 import { countries } from "../app/Components/countries.js";
+export const CLEAR_PRODUCT_DETAIL = "CLEAR_PRODUCT_DETAIL";
+
+export const clearProductDetail = () => ({ type: CLEAR_PRODUCT_DETAIL });
 
 export const GET_PRODUCT = "GET_PRODUCT";
 export const POST_PRODUCT = "POST_PRODUCT";

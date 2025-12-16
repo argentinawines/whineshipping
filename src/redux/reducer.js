@@ -32,19 +32,13 @@ import {
   DELETE_EDIT_ORDER,
   FILTER_ID,
   GET_COUNTRY,
+  CLEAR_PRODUCT_DETAIL,
 } from "./action.js";
 
-// Recuperar admin desde localStorage
-// // IMPORTANTE:
-// No leer localStorage en el "top level" del módulo.
-// En Next (SSR + hydration) esto genera diferencias entre el HTML del server y el primer render del cliente
-// (por ejemplo, el contador del carrito) y termina en errores tipo "Minified React error #418".
+// IMPORTANTE: no leer localStorage acá (SSR/hydration)
 let adminStorage = {};
 let cartFromStorage = [];
 
-// Los valores reales se cargan luego, ya en el cliente, con actions (loadCartFromStorage / loadAdminFromStorage).
-
-// Estado inicial
 const initialState = {
   products: [],
   allProduct: [],
@@ -60,7 +54,7 @@ const initialState = {
   },
   cartProducts: cartFromStorage,
   isOpen: false,
-  details: [],
+  details: null, // 👈 antes: []
   admin: adminStorage,
   offers: [],
   getCountry: [],
@@ -70,13 +64,13 @@ const initialState = {
   cancelOrder: [],
   createCart: [],
   editOrder: [],
+  loading: false, // 👈 para GET_COUNTRY (opcional pero prolijo)
   updateProduct: {
     product: null,
     error: null,
   },
 };
 
-// Reducer
 function reducer(state = initialState, action) {
   const allProduct = state.allProduct;
   const allOrders = state.allOrders;
@@ -89,16 +83,14 @@ function reducer(state = initialState, action) {
         allProduct: action.payload,
       };
 
-    case GET_COUNTRY:
-   
-
+    case GET_COUNTRY: {
       const countryNames = action.payload.map((country) => country.name);
-
       return {
         ...state,
         getCountry: countryNames,
         loading: false,
       };
+    }
 
     case FILTER_ORDER:
       return {
@@ -135,6 +127,12 @@ function reducer(state = initialState, action) {
       return {
         ...state,
         details: action.payload,
+      };
+
+    case CLEAR_PRODUCT_DETAIL:
+      return {
+        ...state,
+        details: null, // 👈 limpia el detalle para que no “parpadee” el anterior
       };
 
     case LOGIN:
@@ -210,34 +208,7 @@ function reducer(state = initialState, action) {
         },
       };
 
-    // CART ACTIONS
-    //     case ADD_TO_CART: {
-    //       const item = action.payload;
-    //       const existItem = state.cartProducts.find((x) => x.id === item.id);
-    // let newCart;
-    //       if(existItem) {
-    //          newCart = state.cartProducts.map((x) =>
-    //           x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x
-    //         );
-    //       } else {
-    //         newCart = [...state.cartProducts, { ...item, quantity: 1 }];
-    //       }
-    //       // const newCart = existItem
-    //       //   ? state.cartProducts.map((x) =>
-    //       //       x.id === item.id ? { ...x, quantity: x.quantity + 1 } : x
-    //       //     )
-    //       //   : [...state.cartProducts, { ...item, quantity: 1 }];
-
-    //       if (typeof window !== "undefined") {
-    //         localStorage.setItem("cartProducts", JSON.stringify(newCart));
-    //       }
-
-    //       return {
-    //         ...state,
-    //         cartProducts: newCart,
-    //       };
-    //     }
-
+    // CART
     case REMOVE_FROM_CART: {
       const newCart = state.cartProducts.filter((p) => p.id !== action.payload);
       if (typeof window !== "undefined") {
@@ -295,6 +266,7 @@ function reducer(state = initialState, action) {
             : item
         )
         .filter((item) => item.quantity > 0);
+
       if (typeof window !== "undefined") {
         localStorage.setItem("cartProducts", JSON.stringify(newCart));
       }
@@ -313,45 +285,34 @@ function reducer(state = initialState, action) {
         cartProducts: [],
       };
 
-    // ORDERING AND FILTERING
-    case ORDER_NAME:
+    // ORDER + FILTER
+    case ORDER_NAME: {
       const sortedByName =
         action.payload === "asc"
           ? [...state.products].sort((a, b) => a.name.localeCompare(b.name))
           : action.payload === "desc"
           ? [...state.products].sort((a, b) => b.name.localeCompare(a.name))
           : allProduct;
+
       return {
         ...state,
         products: sortedByName,
       };
+    }
 
-    //   case ORDER_NAME:
-    // if (action.payload === "all") {
-    //   return {
-    //     ...state,
-    //     products: allProduct,
-    //   };
-    // }
-    // const filteredBrand = allProduct.filter((v) =>
-    //   v.brand?.includes(action.payload)
-    // );
-    // return {
-    //   ...state,
-    //   products: filteredBrand,
-    // };
-
-    case ORDER_PRICE:
+    case ORDER_PRICE: {
       const sortedByPrice =
         action.payload === "ratiAsc"
           ? [...state.products].sort((a, b) => a.rating - b.rating)
           : action.payload === "ratiDesc"
           ? [...state.products].sort((a, b) => b.rating - a.rating)
           : allProduct;
+
       return {
         ...state,
         products: sortedByPrice,
       };
+    }
 
     case SEARCH_WINE:
       return {
@@ -377,8 +338,9 @@ function reducer(state = initialState, action) {
         filteredProducts: [],
       };
 
-    case SET_FILTERS:
+    case SET_FILTERS: {
       const filters = action.payload;
+
       const filtered = state.products.filter((p) => {
         return (
           p.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
@@ -392,11 +354,13 @@ function reducer(state = initialState, action) {
       });
 
       const sorted = applySort(filtered, filters.sortOrder);
+
       return {
         ...state,
         filters,
         filteredProducts: sorted,
       };
+    }
 
     case CLEAR_FILTERS:
       return {
@@ -417,6 +381,7 @@ function reducer(state = initialState, action) {
       return state;
   }
 }
+
 // Función auxiliar para ordenar
 function applySort(products, order) {
   switch (order) {
@@ -432,4 +397,5 @@ function applySort(products, order) {
       return products;
   }
 }
+
 export default reducer;
