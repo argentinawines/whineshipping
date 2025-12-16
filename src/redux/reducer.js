@@ -35,59 +35,14 @@ import {
 } from "./action.js";
 
 // Recuperar admin desde localStorage
-// let adminStorage = {};
-// if (typeof window !== "undefined") {
-//   const storedAdmin = localStorage.getItem("admin");
-//   if (storedAdmin && storedAdmin !== "undefined") {
-//     try {
-//       adminStorage = JSON.parse(storedAdmin);
-//     } catch (e) {
-//       console.error("Error parsing admin from localStorage:", e);
-//     }
-//   }
-// }
-
+// // IMPORTANTE:
+// No leer localStorage en el "top level" del módulo.
+// En Next (SSR + hydration) esto genera diferencias entre el HTML del server y el primer render del cliente
+// (por ejemplo, el contador del carrito) y termina en errores tipo "Minified React error #418".
 let adminStorage = {};
-if (typeof window !== "undefined") {
-  const storedAdmin = localStorage.getItem("admin");
-  if (storedAdmin && storedAdmin !== "undefined") {
-    try {
-      const parsed = JSON.parse(storedAdmin);
-      if (parsed !== null && typeof parsed === "object") {
-        adminStorage = parsed;
-      } else {
-        localStorage.removeItem("admin");
-      }
-    } catch (e) {
-      console.error("Error parsing admin from localStorage:", e);
-
-      localStorage.removeItem("admin");
-    }
-  }
-}
-
-// Recuperar carrito desde localStorage
-
 let cartFromStorage = [];
 
-if (typeof window !== "undefined") {
-  const storedCart = localStorage.getItem("cartProducts");
-
-  if (storedCart && storedCart !== "undefined") {
-    try {
-      const parsed = JSON.parse(storedCart);
-
-      if (Array.isArray(parsed)) {
-        cartFromStorage = parsed;
-      } else {
-        localStorage.removeItem("cartProducts");
-      }
-    } catch (e) {
-      console.error("Error parsing cartProducts from localStorage:", e);
-      localStorage.removeItem("cartProducts");
-    }
-  }
-}
+// Los valores reales se cargan luego, ya en el cliente, con actions (loadCartFromStorage / loadAdminFromStorage).
 
 // Estado inicial
 const initialState = {

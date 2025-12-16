@@ -429,36 +429,43 @@ export const decreaseQuantity = (id) => (dispatch, getState) => {
   localStorage.setItem("cartItems", JSON.stringify(cartProducts));
 };
 
-// export const loadCartFromStorage = () => (dispatch) => {
-//   const stored = localStorage.getItem("cartProducts");
-//   if (stored) {
-//     dispatch({
-//       type: "LOAD_CART",
-//       payload: JSON.parse(stored),
-//     });
-//   }
-// };
-export const loadCartFromStorage = () => {
+// export const loadCartFromStorage = () => {
   return (dispatch) => {
+    if (typeof window === "undefined") return;
+
     const stored = localStorage.getItem("cartProducts");
 
     // Verificar si 'stored' tiene un valor válido y no es 'undefined' o una cadena vacía
     if (stored && stored !== "undefined" && stored !== "") {
       try {
         const parsedCart = JSON.parse(stored);
-        dispatch({
-          type: "LOAD_CART",
-          payload: parsedCart,
-        });
+        if (Array.isArray(parsedCart)) {
+          dispatch({ type: LOAD_CART, payload: parsedCart });
+        } else {
+          localStorage.removeItem("cartProducts");
+        }
       } catch (error) {
         console.error("Error al parsear el carrito desde localStorage:", error);
+        localStorage.removeItem("cartProducts");
       }
-    } else {
-      // Si no hay carrito en localStorage, puedes despachar un carrito vacío o algo que tenga sentido
-      dispatch({
-        type: "LOAD_CART",
-        payload: [], // Carrito vacío
-      });
+    }
+  };
+};
+
+export const loadAdminFromStorage = () => {
+  return (dispatch) => {
+    if (typeof window === "undefined") return;
+
+    const stored = localStorage.getItem("admin");
+
+    if (stored && stored !== "undefined" && stored !== "") {
+      try {
+        const parsedAdmin = JSON.parse(stored);
+        dispatch({ type: LOGIN, payload: parsedAdmin });
+      } catch (error) {
+        console.error("Error al parsear admin desde localStorage:", error);
+        localStorage.removeItem("admin");
+      }
     }
   };
 };

@@ -18,14 +18,10 @@ function page() {
   const [loader, setLoader] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
     dispatch(getProductDetail(id));
-    // setLoader(true);
-    // setTimeout(() => {
-    //   setLoader(false);
-    // }, 3000);
-  }, []);
-
-  console.log("details", details);
+  }, [dispatch, id]);
+console.log("details", details);
 
   return (
     <>
