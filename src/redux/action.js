@@ -74,7 +74,6 @@ export const createOrder = (payload) => {
   return async (dispatch) => {
     try {
       const response = await axios.post(`${baseurl}/order`, payload);
-     
 
       dispatch({
         type: CREATE_ORDER,
@@ -177,7 +176,6 @@ export const getProductDetail = (id) => {
     try {
       const response = await axios.get(`${baseurl}/product/${id}`);
 
-
       dispatch({
         type: PRODUCT_DETAIL,
         payload: response.data,
@@ -192,7 +190,7 @@ export const loginUser = (payload) => {
   return async (dispatch) => {
     try {
       const response = await axios.post(`${baseurl}/administrator`, payload);
-      
+
       dispatch({
         type: LOGIN,
         payload: response.data,
@@ -255,12 +253,9 @@ export const postProduct = (payload) => {
 };
 
 export function updateProduct(id, payload) {
-
-
   return async function (dispatch) {
     try {
       let json = await axios.put(`${baseurl}/product/${id}`, payload);
-     
 
       return dispatch({
         type: UPDATE_PRODUCT,
@@ -426,16 +421,16 @@ export const decreaseQuantity = (id) => (dispatch, getState) => {
   });
 
   const { cartProducts } = getState();
-  localStorage.setItem("cartItems", JSON.stringify(cartProducts));
+  // guardamos con la MISMA key que usa el reducer
+  localStorage.setItem("cartProducts", JSON.stringify(cartProducts));
 };
 
-// export const loadCartFromStorage = () => {
+export const loadCartFromStorage = () => {
   return (dispatch) => {
     if (typeof window === "undefined") return;
 
     const stored = localStorage.getItem("cartProducts");
 
-    // Verificar si 'stored' tiene un valor válido y no es 'undefined' o una cadena vacía
     if (stored && stored !== "undefined" && stored !== "") {
       try {
         const parsedCart = JSON.parse(stored);
