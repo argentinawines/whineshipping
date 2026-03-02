@@ -38,8 +38,9 @@ export const DELETE_EDIT_ORDER = "DELETE_EDIT_ORDER";
 export const FILTER_ID = "FILTER_ID";
 export const GET_COUNTRY = "GET_COUNTRY";
 
-// const baseurl = "http://localhost:3001";
-const baseurl = "https://backwine.onrender.com";
+// Para local: poné NEXT_PUBLIC_API_URL=http://localhost:3001 en .env.local
+const baseurl = (process.env.NEXT_PUBLIC_API_URL || "https://api.argentinawineshipping.com")
+  .replace(/\/$/, "");
 export function orderRating(payload) {
   return {
     type: ORDER_PRICE,
