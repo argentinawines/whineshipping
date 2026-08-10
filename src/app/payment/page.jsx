@@ -19,7 +19,6 @@ import {
   createCart,
   createOrder,
   clearCart,
-  getOrder,
   getCountry,
 } from "../../redux/action.js";
 
@@ -55,7 +54,6 @@ function Page() {
 
   // Selectores
   const cart = useSelector((state) => state.cartProducts);
-  const order = useSelector((state) => state.orders);
   const orderCreated = useSelector((state) => state.createOrder);
   const countries = useSelector((state) => state.getCountry);
 
@@ -115,20 +113,12 @@ function Page() {
     document.body.appendChild(img);
   }, []);
 
-  // Obtener ordenes
+  // Obtener países disponibles
   useEffect(() => {
-    dispatch(getOrder());
     dispatch(getCountry());
   }, [dispatch]);
 
-  // Calcular última orden
-  const lastOrder =
-    Array.isArray(order) && order.length > 0
-      ? Math.max(...order.map((o) => o.id))
-      : 0;
-
   const [send, setSend] = useState(0);
-  const invoice = lastOrder + 1;
   const total = cart.reduce(
     (acc, product) => acc + product.price * product.quantity,
     0
@@ -160,7 +150,7 @@ function Page() {
       const dataWithId = {
         ...pendingOrder,
         id: createdId,
-        invoice: pendingOrder?.id || invoice,
+        invoice: createdId,
         obsevation:
           obsevation || "Consulta por país no contemplado o exceso de botellas",
       };
@@ -262,7 +252,6 @@ function Page() {
       setModalMessage("For deliveries to your country, please let us know.");
       setPendingOrder({
         ...formData,
-        id: invoice,
         observacion: "País no disponible.",
       });
       setShowModal(true);
@@ -279,7 +268,6 @@ function Page() {
       );
       setPendingOrder({
         ...formData,
-        id: invoice,
         observacion: `Supera máximo permitido (${maximo}). `,
       });
       setShowModal(true);
@@ -298,8 +286,7 @@ function Page() {
   };
 
   const handleSubmit = () => {
-    const newOrder = { ...formData, id: invoice };
-    dispatch(createOrder(newOrder));
+    return dispatch(createOrder({ ...formData }));
   };
 
   const sendEmail = (data) => {
@@ -587,8 +574,8 @@ function Page() {
             >
               Country (required)
             </label>
-            <div className="flex">
-              <div className="relative w-7/12 flex-shrink-0">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative w-full sm:w-7/12 sm:flex-shrink-0">
                 <select
                   id="country"
                   name="country"
@@ -639,21 +626,13 @@ function Page() {
               <input
                 type="text"
                 name="postalCode"
-                className="flex-shrink-0 rounded-md border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none sm:w-1/6 focus:z-10 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none sm:w-1/6 sm:flex-shrink-0 focus:z-10 focus:border-blue-500 focus:ring-blue-500"
                 placeholder="ZIP (required)"
                 required
                 onChange={handleChange}
                 value={formData.postalCode}
               />
             </div>
-            <input
-              type="text"
-              id="invoice"
-              name="invoice"
-              onChange={handleChange}
-              value={invoice}
-              style={{ display: "none" }}
-            />
             <div className="mt-6 border-t border-b py-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-900">Subtotal</p>
@@ -696,7 +675,6 @@ function Page() {
           ) : (
             <ButtonPaypal
               totalValue={totalPrice}
-              invoice={invoice}
               handleSubmit={handleSubmit}
             />
           )}
