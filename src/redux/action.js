@@ -83,8 +83,10 @@ export const createOrder = (payload) => {
         type: CREATE_ORDER,
         payload: response.data,
       });
+      return response.data;
     } catch (error) {
       console.error("Error occurred:", error);
+      throw error;
     }
   };
 };

@@ -1,93 +1,87 @@
-// components/ButtonPaypal.jsx o .tsx
 "use client";
-import React from 'react';
-import { PayPalButtons } from '@paypal/react-paypal-js';
-import { useRouter } from "next/navigation";
 
-const ButtonPaypal = (props) => {
-  const router = useRouter();
+import React, { useState } from "react";
+import { PayPalButtons } from "@paypal/react-paypal-js";
+
+const ButtonPaypal = ({ totalValue, handleSubmit }) => {
+  const [paymentError, setPaymentError] = useState("");
+
+  const createOrder = (data, actions) => {
+    setPaymentError("");
+
+    const amount = Number(totalValue);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      const message =
+        "We could not start the payment because the order total is invalid.";
+      setPaymentError(message);
+      throw new Error(message);
+    }
+
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: {
+            currency_code: "USD",
+            value: amount.toFixed(2),
+          },
+        },
+      ],
+    });
+  };
+
+  const handleApprove = async (data, actions) => {
+    setPaymentError("");
+
+    let order;
+    try {
+      order = await actions.order?.capture();
+    } catch (error) {
+      console.error("Error capturing PayPal payment:", error);
+      setPaymentError(
+        "We could not confirm the PayPal payment. Please try again."
+      );
+      return;
+    }
+
+    if (order?.status !== "COMPLETED") {
+      setPaymentError(
+        "PayPal could not complete the payment. Please try again."
+      );
+      return;
+    }
+
+    try {
+      await handleSubmit();
+    } catch (error) {
+      console.error("Error saving the completed order:", error);
+      setPaymentError(
+        "Your PayPal payment completed, but we could not save the order. Please contact us before trying again."
+      );
+    }
+  };
 
   return (
-    <PayPalButtons
-      createOrder={(data, actions) => {
-        return actions.order.create({
-          purchase_units: [
-            {
-              amount: {
-                value: props.totalValue,
-              },
-              invoice_id: props.invoice,
-            },
-          ],
-        });
-      }}
-      onApprove={async (data, actions) => {
-        const order = await actions.order?.capture();
-
-        if (order.status === 'COMPLETED') {
-          // Llama tu función
-          props.handleSubmit();
-
-          // Redirige a la página de éxito
-          router.push('/payment-success');
+    <div>
+      <PayPalButtons
+        createOrder={createOrder}
+        onApprove={handleApprove}
+        onCancel={() =>
+          setPaymentError("The PayPal payment was cancelled. No charge was made.")
         }
-      }}
-      onError={(err) => {
-        console.error('Error en el pago:', err);
-        // Aquí podrías redirigir a una página de error si lo deseas
-      }}
-    />
+        onError={(error) => {
+          console.error("PayPal payment error:", error);
+          setPaymentError(
+            "PayPal could not process the payment. Please try again."
+          );
+        }}
+      />
+      {paymentError && (
+        <p className="mt-3 text-sm text-red-600" role="alert">
+          {paymentError}
+        </p>
+      )}
+    </div>
   );
 };
 
 export default ButtonPaypal;
-
-
-
-
-// import React from 'react';
-// import { PayPalButtons } from '@paypal/react-paypal-js';
-
-
-// const ButtonPaypal = (props) => {
-
-
-
-
-
-
-
-// console.log('Props en ButtonPaypal:', props);
-//   return (
-//     <PayPalButtons
-//       createOrder={(data, actions) => {
-//         return actions.order.create({
-//           // Aquí debes definir los detalles del pedido, por ejemplo:
-//           purchase_units: [{
-//             amount: {
-//               value: props.totalValue,
-//             },
-//             invoice_id: props.invoice,
-//           }],
-//         });
-//       }}
-//       onApprove={async (data, actions) => {
-//         const order = await actions.order?.capture();
-      
-        
-        
-//         if (order.status === 'COMPLETED') {
-//             props.handleSubmit()
-//         }
-//         // props.onApprove(order); 
-
-//       }}
-//       onError={(err) => {
-//         console.error('Error en el pago:', err);
-//         // props.onError(err);Llama a la función onError pasada como prop
-//       }}
-//     />
-//   );
-// };
-
-// export default ButtonPaypal;

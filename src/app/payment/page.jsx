@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
@@ -16,10 +16,8 @@ import Login from "../login/page.js";
 import { paises } from "../Components/paises";
 import ButtonPaypal from "../Components/ButtonPaypal";
 import {
-  createCart,
   createOrder,
   clearCart,
-  getOrder,
   getCountry,
 } from "../../redux/action.js";
 
@@ -29,14 +27,12 @@ function Page() {
 
   // Hooks de estado
   const [mounted, setMounted] = useState(false);
-  const [formCart, setFormCart] = useState([]);
   const [paypalVisible, setPaypalVisible] = useState(false);
   const [hasUser, setHasUser] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [obsevation, setObsevation] = useState("");
   const [pendingOrder, setPendingOrder] = useState(null);
-  const [isConsulta, setIsConsulta] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
   //const [totalBotellas, setTotalBotellas] = useState(0);
   const [formData, setFormData] = useState({
@@ -51,12 +47,8 @@ function Page() {
     userId: null,
   });
 
-  const formRef = useRef(null);
-
   // Selectores
   const cart = useSelector((state) => state.cartProducts);
-  const order = useSelector((state) => state.orders);
-  const orderCreated = useSelector((state) => state.createOrder);
   const countries = useSelector((state) => state.getCountry);
 
   const handleConfirEmailChange = (e) => {
@@ -115,20 +107,12 @@ function Page() {
     document.body.appendChild(img);
   }, []);
 
-  // Obtener ordenes
+  // Obtener países disponibles
   useEffect(() => {
-    dispatch(getOrder());
     dispatch(getCountry());
   }, [dispatch]);
 
-  // Calcular última orden
-  const lastOrder =
-    Array.isArray(order) && order.length > 0
-      ? Math.max(...order.map((o) => o.id))
-      : 0;
-
   const [send, setSend] = useState(0);
-  const invoice = lastOrder + 1;
   const total = cart.reduce(
     (acc, product) => acc + product.price * product.quantity,
     0
@@ -149,55 +133,6 @@ function Page() {
       totalPrice,
     }));
   }, [totalPrice]);
-
-  useEffect(() => {
-    if (!orderCreated?.orderCreated?.id) return;
-
-    const createdId = orderCreated.orderCreated.id;
-
-    // Si fue una consulta (por país no válido o exceso de botellas)
-    if (isConsulta) {
-      const dataWithId = {
-        ...pendingOrder,
-        id: createdId,
-        invoice: pendingOrder?.id || invoice,
-        obsevation:
-          obsevation || "Consulta por país no contemplado o exceso de botellas",
-      };
-
-      // sendEmail(dataWithId);
-      toast.success(
-        "Your request has been submitted. We will contact you shortly.",
-        { autoClose: 5000 }
-      );
-      return; // 🧠 No continuar creando carrito ni limpiando
-    }
-
-    // Evitar loop si ya se creó el carrito
-    if (formCart.length > 0) return;
-
-    const updatedCart = cart.map(({ id, ...rest }) => ({
-      ...rest,
-      productId: id,
-      orderId: createdId,
-      // userId: formData.userId,
-    }));
-
-    setFormCart(updatedCart);
-    dispatch(createCart(updatedCart));
-    // dispatch(clearCart());
-
-    if (formRef.current) {
-      sendEmail({
-        ...formData,
-        invoice: createdId,
-        obsevation: "orden pagada por PayPal",
-      });
-    }
-
-    toast.success("Payment processed satisfactorily", { autoClose: 5000 });
-    setTimeout(() => router.push("/"), 5000);
-  }, [orderCreated?.orderCreated?.id]);
 
   useEffect(() => {
     if (formData.country && cart.length > 0) {
@@ -262,7 +197,6 @@ function Page() {
       setModalMessage("For deliveries to your country, please let us know.");
       setPendingOrder({
         ...formData,
-        id: invoice,
         observacion: "País no disponible.",
       });
       setShowModal(true);
@@ -279,7 +213,6 @@ function Page() {
       );
       setPendingOrder({
         ...formData,
-        id: invoice,
         observacion: `Supera máximo permitido (${maximo}). `,
       });
       setShowModal(true);
@@ -297,9 +230,26 @@ function Page() {
     }));
   };
 
-  const handleSubmit = () => {
-    const newOrder = { ...formData, id: invoice };
-    dispatch(createOrder(newOrder));
+  const handleSubmit = async () => {
+    const items = cart.map(({ id, quantity }) => ({
+      productId: id,
+      quantity,
+    }));
+    const result = await dispatch(createOrder({ ...formData, items }));
+
+    if (
+      !result?.orderCreated?.id ||
+      !Array.isArray(result.carts) ||
+      result.carts.length !== items.length
+    ) {
+      throw new Error("The order was created without all of its products.");
+    }
+
+    dispatch(clearCart());
+    toast.success("Payment processed satisfactorily", { autoClose: 5000 });
+    setTimeout(() => router.push("/"), 5000);
+
+    return result;
   };
 
   const sendEmail = (data) => {
@@ -330,7 +280,6 @@ function Page() {
 
   const handleModalConfirm = () => {
     if (pendingOrder) {
-      setIsConsulta(true); // 🧠 importante
       // dispatch(createOrder(pendingOrder));
       const phone = "5492613035259"; // Número con código de país y sin + (por ejemplo, Argentina)
       const message =
@@ -587,8 +536,8 @@ function Page() {
             >
               Country (required)
             </label>
-            <div className="flex">
-              <div className="relative w-7/12 flex-shrink-0">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative w-full sm:w-7/12 sm:flex-shrink-0">
                 <select
                   id="country"
                   name="country"
@@ -639,21 +588,13 @@ function Page() {
               <input
                 type="text"
                 name="postalCode"
-                className="flex-shrink-0 rounded-md border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none sm:w-1/6 focus:z-10 focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-200 px-4 py-3 text-sm shadow-sm outline-none sm:w-1/6 sm:flex-shrink-0 focus:z-10 focus:border-blue-500 focus:ring-blue-500"
                 placeholder="ZIP (required)"
                 required
                 onChange={handleChange}
                 value={formData.postalCode}
               />
             </div>
-            <input
-              type="text"
-              id="invoice"
-              name="invoice"
-              onChange={handleChange}
-              value={invoice}
-              style={{ display: "none" }}
-            />
             <div className="mt-6 border-t border-b py-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-gray-900">Subtotal</p>
@@ -696,7 +637,6 @@ function Page() {
           ) : (
             <ButtonPaypal
               totalValue={totalPrice}
-              invoice={invoice}
               handleSubmit={handleSubmit}
             />
           )}
