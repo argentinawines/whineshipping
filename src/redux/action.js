@@ -39,7 +39,7 @@ export const FILTER_ID = "FILTER_ID";
 export const GET_COUNTRY = "GET_COUNTRY";
 
 // Para local: poné NEXT_PUBLIC_API_URL=http://localhost:3001 en .env.local
-const baseurl = (process.env.NEXT_PUBLIC_API_URL || "https://api.argentinawineshipping.com")
+export const baseurl = (process.env.NEXT_PUBLIC_API_URL || "https://api.argentinawineshipping.com")
   .replace(/\/$/, "");
 export function orderRating(payload) {
   return {

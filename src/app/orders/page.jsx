@@ -207,6 +207,19 @@ function Page() {
                         {order.status.charAt(0).toUpperCase() +
                           order.status.slice(1)}
                       </div>
+                      {order.paymentStatus && (
+                        <div
+                          className={`mt-2 text-xs font-semibold px-2 py-1 rounded-full ${
+                            order.paymentStatus === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : order.paymentStatus === "REFUNDED"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          Payment: {order.paymentStatus}
+                        </div>
+                      )}
                     </div>
                     <button className="text-sm text-blue-600 hover:underline">
                       {openOrder === order.id ? "Hide details" : "View details"}
