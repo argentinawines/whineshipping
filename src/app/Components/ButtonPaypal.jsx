@@ -32,21 +32,30 @@ const ButtonPaypal = ({ totalValue, handleSubmit }) => {
   const handleApprove = async (data, actions) => {
     setPaymentError("");
 
+    let order;
     try {
-      const order = await actions.order?.capture();
-
-      if (order?.status !== "COMPLETED") {
-        setPaymentError(
-          "PayPal could not complete the payment. Please try again."
-        );
-        return;
-      }
-
-      await handleSubmit();
+      order = await actions.order?.capture();
     } catch (error) {
       console.error("Error capturing PayPal payment:", error);
       setPaymentError(
         "We could not confirm the PayPal payment. Please try again."
+      );
+      return;
+    }
+
+    if (order?.status !== "COMPLETED") {
+      setPaymentError(
+        "PayPal could not complete the payment. Please try again."
+      );
+      return;
+    }
+
+    try {
+      await handleSubmit();
+    } catch (error) {
+      console.error("Error saving the completed order:", error);
+      setPaymentError(
+        "Your PayPal payment completed, but we could not save the order. Please contact us before trying again."
       );
     }
   };

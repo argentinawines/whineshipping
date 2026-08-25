@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
@@ -16,7 +16,6 @@ import Login from "../login/page.js";
 import { paises } from "../Components/paises";
 import ButtonPaypal from "../Components/ButtonPaypal";
 import {
-  createCart,
   createOrder,
   clearCart,
   getCountry,
@@ -28,14 +27,12 @@ function Page() {
 
   // Hooks de estado
   const [mounted, setMounted] = useState(false);
-  const [formCart, setFormCart] = useState([]);
   const [paypalVisible, setPaypalVisible] = useState(false);
   const [hasUser, setHasUser] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [obsevation, setObsevation] = useState("");
   const [pendingOrder, setPendingOrder] = useState(null);
-  const [isConsulta, setIsConsulta] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
   //const [totalBotellas, setTotalBotellas] = useState(0);
   const [formData, setFormData] = useState({
@@ -50,11 +47,8 @@ function Page() {
     userId: null,
   });
 
-  const formRef = useRef(null);
-
   // Selectores
   const cart = useSelector((state) => state.cartProducts);
-  const orderCreated = useSelector((state) => state.createOrder);
   const countries = useSelector((state) => state.getCountry);
 
   const handleConfirEmailChange = (e) => {
@@ -139,55 +133,6 @@ function Page() {
       totalPrice,
     }));
   }, [totalPrice]);
-
-  useEffect(() => {
-    if (!orderCreated?.orderCreated?.id) return;
-
-    const createdId = orderCreated.orderCreated.id;
-
-    // Si fue una consulta (por país no válido o exceso de botellas)
-    if (isConsulta) {
-      const dataWithId = {
-        ...pendingOrder,
-        id: createdId,
-        invoice: createdId,
-        obsevation:
-          obsevation || "Consulta por país no contemplado o exceso de botellas",
-      };
-
-      // sendEmail(dataWithId);
-      toast.success(
-        "Your request has been submitted. We will contact you shortly.",
-        { autoClose: 5000 }
-      );
-      return; // 🧠 No continuar creando carrito ni limpiando
-    }
-
-    // Evitar loop si ya se creó el carrito
-    if (formCart.length > 0) return;
-
-    const updatedCart = cart.map(({ id, ...rest }) => ({
-      ...rest,
-      productId: id,
-      orderId: createdId,
-      // userId: formData.userId,
-    }));
-
-    setFormCart(updatedCart);
-    dispatch(createCart(updatedCart));
-    // dispatch(clearCart());
-
-    if (formRef.current) {
-      sendEmail({
-        ...formData,
-        invoice: createdId,
-        obsevation: "orden pagada por PayPal",
-      });
-    }
-
-    toast.success("Payment processed satisfactorily", { autoClose: 5000 });
-    setTimeout(() => router.push("/"), 5000);
-  }, [orderCreated?.orderCreated?.id]);
 
   useEffect(() => {
     if (formData.country && cart.length > 0) {
@@ -285,8 +230,26 @@ function Page() {
     }));
   };
 
-  const handleSubmit = () => {
-    return dispatch(createOrder({ ...formData }));
+  const handleSubmit = async () => {
+    const items = cart.map(({ id, quantity }) => ({
+      productId: id,
+      quantity,
+    }));
+    const result = await dispatch(createOrder({ ...formData, items }));
+
+    if (
+      !result?.orderCreated?.id ||
+      !Array.isArray(result.carts) ||
+      result.carts.length !== items.length
+    ) {
+      throw new Error("The order was created without all of its products.");
+    }
+
+    dispatch(clearCart());
+    toast.success("Payment processed satisfactorily", { autoClose: 5000 });
+    setTimeout(() => router.push("/"), 5000);
+
+    return result;
   };
 
   const sendEmail = (data) => {
@@ -317,7 +280,6 @@ function Page() {
 
   const handleModalConfirm = () => {
     if (pendingOrder) {
-      setIsConsulta(true); // 🧠 importante
       // dispatch(createOrder(pendingOrder));
       const phone = "5492613035259"; // Número con código de país y sin + (por ejemplo, Argentina)
       const message =
