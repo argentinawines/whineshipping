@@ -15,11 +15,7 @@ import Menu from "../Components/Menu";
 import Login from "../login/page.js";
 import { paises } from "../Components/paises";
 import ButtonPaypal from "../Components/ButtonPaypal";
-import {
-  createOrder,
-  clearCart,
-  getCountry,
-} from "../../redux/action.js";
+import { clearCart, getCountry } from "../../redux/action.js";
 
 function Page() {
   const dispatch = useDispatch();
@@ -230,26 +226,22 @@ function Page() {
     }));
   };
 
-  const handleSubmit = async () => {
-    const items = cart.map(({ id, quantity }) => ({
-      productId: id,
-      quantity,
-    }));
-    const result = await dispatch(createOrder({ ...formData, items }));
-
-    if (
-      !result?.orderCreated?.id ||
-      !Array.isArray(result.carts) ||
-      result.carts.length !== items.length
-    ) {
-      throw new Error("The order was created without all of its products.");
-    }
-
+  const handlePaymentSuccess = async () => {
     dispatch(clearCart());
     toast.success("Payment processed satisfactorily", { autoClose: 5000 });
     setTimeout(() => router.push("/"), 5000);
+  };
 
-    return result;
+  const checkoutData = {
+    name: formData.name,
+    address: formData.address,
+    country: formData.country,
+    city: formData.city,
+    postalCode: formData.postalCode,
+    email: formData.email,
+    phone: formData.phone,
+    userId: formData.userId,
+    items: cart.map(({ id, quantity }) => ({ productId: id, quantity })),
   };
 
   const sendEmail = (data) => {
@@ -636,8 +628,8 @@ function Page() {
             </button>
           ) : (
             <ButtonPaypal
-              totalValue={totalPrice}
-              handleSubmit={handleSubmit}
+              checkoutData={checkoutData}
+              onSuccess={handlePaymentSuccess}
             />
           )}
         </div>
