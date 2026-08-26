@@ -41,6 +41,20 @@ export const GET_COUNTRY = "GET_COUNTRY";
 // Para local: poné NEXT_PUBLIC_API_URL=http://localhost:3001 en .env.local
 export const baseurl = (process.env.NEXT_PUBLIC_API_URL || "https://api.argentinawineshipping.com")
   .replace(/\/$/, "");
+
+function getAdminAuthConfig() {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const admin = JSON.parse(localStorage.getItem("admin") || "{}");
+    return admin.token
+      ? { headers: { Authorization: `Bearer ${admin.token}` } }
+      : {};
+  } catch {
+    localStorage.removeItem("admin");
+    return {};
+  }
+}
 export function orderRating(payload) {
   return {
     type: ORDER_PRICE,
@@ -62,7 +76,7 @@ export function filterId(payload) {
 export const getOrder = () => {
   return async (dispatch) => {
     try {
-      const response = await axios.get(`${baseurl}/order`);
+      const response = await axios.get(`${baseurl}/order`, getAdminAuthConfig());
 
       dispatch({
         type: GET_ORDER,
@@ -93,7 +107,7 @@ export const createOrder = (payload) => {
 export const cancelOrder = (id, payload) => {
   return async (dispatch) => {
     try {
-      const response = await axios.put(`${baseurl}/order/${id}`, payload);
+      const response = await axios.put(`${baseurl}/order/${id}`, payload, getAdminAuthConfig());
       dispatch({
         type: CANCEL_ORDER,
         payload: response.data,
@@ -107,7 +121,7 @@ export const cancelOrder = (id, payload) => {
 export const editOrder = (id, payload) => {
   return async (dispatch) => {
     try {
-      const response = await axios.put(`${baseurl}/order/${id}`, payload);
+      const response = await axios.put(`${baseurl}/order/${id}`, payload, getAdminAuthConfig());
       dispatch({
         type: EDIT_ORDER,
         payload: response.data,
@@ -201,9 +215,10 @@ export const loginUser = (payload) => {
         type: LOGIN,
         payload: response.data,
       });
+      return response.data;
     } catch (error) {
       console.error("Error en login:", error);
-      // Podés despachar un error si querés manejarlo en Redux
+      throw error;
     }
   };
 };
@@ -250,7 +265,7 @@ export function getAllProduct() {
 
 export const postProduct = (payload) => {
   return async function (dispatch) {
-    let json = await axios.post(`${baseurl}/product`, payload);
+    let json = await axios.post(`${baseurl}/product`, payload, getAdminAuthConfig());
     return dispatch({
       type: "POST_PRODUCT",
       payload: json.data,
@@ -261,7 +276,7 @@ export const postProduct = (payload) => {
 export function updateProduct(id, payload) {
   return async function (dispatch) {
     try {
-      let json = await axios.put(`${baseurl}/product/${id}`, payload);
+      let json = await axios.put(`${baseurl}/product/${id}`, payload, getAdminAuthConfig());
 
       return dispatch({
         type: UPDATE_PRODUCT,
@@ -310,7 +325,10 @@ export function deleteEditOrder() {
 export function deleteProduct(id, body) {
   return async function (dispatch) {
     try {
-      let res = await axios.delete(`${baseurl}/product/${id}`, body);
+      let res = await axios.delete(`${baseurl}/product/${id}`, {
+        ...getAdminAuthConfig(),
+        data: body,
+      });
       return res;
     } catch (e) {
       return console.log(e, "error");
@@ -321,7 +339,7 @@ export function deleteProduct(id, body) {
 export function editProduct(id, body) {
   return async function (dispatch) {
     try {
-      let res = await axios.put(`${baseurl}/product/${id}`, body);
+      let res = await axios.put(`${baseurl}/product/${id}`, body, getAdminAuthConfig());
       return res;
     } catch (e) {
       return dispatch(console.log(e, "error"));
